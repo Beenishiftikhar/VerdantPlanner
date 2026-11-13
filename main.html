@@ -1,1 +1,830 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verdant — Botanical Productivity & Timetable Planner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        forest: { 50: '#f2f9f4', 100: '#d8ece1', 600: '#15803d', 700: '#166534', 800: '#14532d', 900: '#0f381f' },
+                        sage: { 50: '#f5f7f5', 100: '#e3ece7', 200: '#c5d9cd', 600: '#688f77', 700: '#4d6e5a' },
+                        terracotta: { 500: '#d97757', 600: '#b85d3c' },
+                        earth: { 800: '#3d322c', 900: '#261f1b' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-forest-50 via-sage-50 to-forest-100 dark:from-earth-900 dark:via-zinc-900 dark:to-earth-900 text-earth-900 dark:text-sage-50 min-h-screen flex flex-col font-sans selection:bg-sage-200 transition-colors duration-300">
 
+    <!-- HEADER / GLOBAL TOP BAR -->
+    <header class="bg-white/90 dark:bg-earth-900/90 backdrop-blur-md border-b border-sage-200 dark:border-zinc-800 sticky top-0 z-50 shadow-sm transition-colors duration-300">
+        <div class="max-w-6xl mx-auto px-4 py-3 space-y-3">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-forest-600 to-forest-800 text-white flex items-center justify-center text-2xl shadow-md border border-forest-500/30">🌿</div>
+                    <div>
+                        <h1 class="text-xl font-extrabold tracking-tight text-forest-900 dark:text-sage-100 flex items-center gap-1.5">
+                            Verdant <span class="text-xs font-semibold px-2 py-0.5 bg-forest-100 dark:bg-forest-900 text-forest-800 dark:text-forest-200 rounded-full">Botanical Edition</span>
+                        </h1>
+                        <!-- User Name Display & Edit -->
+                        <div class="flex items-center gap-1 text-xs text-sage-700 dark:text-sage-400">
+                            <span>Gardener:</span>
+                            <span id="display-username" class="font-bold underline cursor-pointer hover:text-forest-700" onclick="editUserName()" title="Click to change name">Gardener</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Simple & Direct Tab Names -->
+                    <nav class="flex flex-wrap gap-1 bg-sage-100/70 dark:bg-zinc-800 p-1.5 rounded-2xl border border-sage-200 dark:border-zinc-700">
+                        <button onclick="switchTab('tasks')" id="tab-btn-tasks" class="px-4 py-2 text-sm font-semibold rounded-xl transition-all bg-forest-700 text-white shadow-sm">Tasks</button>
+                        <button onclick="switchTab('timer')" id="tab-btn-timer" class="px-4 py-2 text-sm font-semibold rounded-xl transition-all text-sage-700 dark:text-sage-300 hover:text-forest-900 hover:bg-white/80 dark:hover:bg-zinc-700">Timer</button>
+                        <button onclick="switchTab('timetable')" id="tab-btn-timetable" class="px-4 py-2 text-sm font-semibold rounded-xl transition-all text-sage-700 dark:text-sage-300 hover:text-forest-900 hover:bg-white/80 dark:hover:bg-zinc-700">Timetable</button>
+                        <button onclick="switchTab('habits')" id="tab-btn-habits" class="px-4 py-2 text-sm font-semibold rounded-xl transition-all text-sage-700 dark:text-sage-300 hover:text-forest-900 hover:bg-white/80 dark:hover:bg-zinc-700">Habits</button>
+                        <button onclick="switchTab('calendar')" id="tab-btn-calendar" class="px-4 py-2 text-sm font-semibold rounded-xl transition-all text-sage-700 dark:text-sage-300 hover:text-forest-900 hover:bg-white/80 dark:hover:bg-zinc-700">Calendar</button>
+                    </nav>
+
+                    <!-- Theme Toggle Button -->
+                    <button onclick="toggleTheme()" class="p-2.5 rounded-2xl bg-sage-100 dark:bg-zinc-800 border border-sage-200 dark:border-zinc-700 text-sm shadow-xs transition-transform hover:scale-105" title="Toggle Light/Dark Theme">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- GLOBAL TOP BAR: Ambient Sounds & Garden Status -->
+            <div class="flex flex-col lg:flex-row justify-between items-center bg-white/80 dark:bg-zinc-800/80 px-4 py-2.5 rounded-2xl border border-sage-200 dark:border-zinc-700 gap-3 text-xs shadow-inner">
+                <div class="flex items-center gap-2.5">
+                    <div class="text-2xl p-1 bg-forest-50 dark:bg-zinc-900 rounded-xl border border-sage-200 dark:border-zinc-700 shadow-sm" id="global-plant-emoji">🌰</div>
+                    <div>
+                        <div class="font-bold text-forest-900 dark:text-sage-100 text-sm" id="global-plant-title">Stage 1: Dormant Seed</div>
+                        <div class="text-sage-700 dark:text-sage-400" id="global-plant-counter">0 / 0 Tasks Completed</div>
+                    </div>
+                </div>
+
+                <!-- Soundscape Controls -->
+                <div class="flex items-center gap-2 flex-wrap justify-center">
+                    <span class="font-bold text-sage-800 dark:text-sage-300 mr-1 flex items-center gap-1">🎵 Nature Soundscape:</span>
+                    <button onclick="setSound('none')" id="sound-none" class="px-3 py-1.5 font-semibold rounded-lg bg-forest-700 text-white transition-all shadow-sm">Mute</button>
+                    <button onclick="setSound('rain')" id="sound-rain" class="px-3 py-1.5 font-semibold rounded-lg bg-sage-50 dark:bg-zinc-700 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-zinc-600 hover:bg-sage-100 transition-all">🌧️ Rain</button>
+                    <button onclick="setSound('thunder')" id="sound-thunder" class="px-3 py-1.5 font-semibold rounded-lg bg-sage-50 dark:bg-zinc-700 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-zinc-600 hover:bg-sage-100 transition-all">⚡ Thunder</button>
+                    <button onclick="setSound('birds')" id="sound-birds" class="px-3 py-1.5 font-semibold rounded-lg bg-sage-50 dark:bg-zinc-700 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-zinc-600 hover:bg-sage-100 transition-all">🐦 Birds</button>
+                    <button onclick="setSound('wind')" id="sound-wind" class="px-3 py-1.5 font-semibold rounded-lg bg-sage-50 dark:bg-zinc-700 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-zinc-600 hover:bg-sage-100 transition-all">🍃 Wind</button>
+                    <button onclick="setSound('forest')" id="sound-forest" class="px-3 py-1.5 font-semibold rounded-lg bg-sage-50 dark:bg-zinc-700 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-zinc-600 hover:bg-sage-100 transition-all">🌲 Forest</button>
+                    <input type="range" id="sound-volume" min="0" max="1" step="0.05" value="0.4" onchange="updateVolume(this.value)" class="w-16 accent-forest-700 ml-2" title="Audio Volume">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+
+        <!-- ==================== TAB 1: TASKS ==================== -->
+        <section id="tab-tasks" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Add / Edit Task Form -->
+                <div class="bg-white/90 dark:bg-zinc-800/90 backdrop-blur rounded-3xl p-6 border border-sage-200 dark:border-zinc-700 shadow-sm space-y-4">
+                    <h3 class="text-lg font-bold text-forest-900 dark:text-sage-100 flex items-center gap-2">
+                        <span id="form-mode-icon">➕</span> <span id="form-title-text">Add New Task</span>
+                    </h3>
+                    <form id="task-form" onsubmit="handleTaskSubmit(event)" class="space-y-3">
+                        <input type="hidden" id="edit-task-id">
+                        <div>
+                            <label class="block text-xs font-semibold text-sage-700 dark:text-sage-400 mb-1">Task Title *</label>
+                            <input type="text" id="task-title" required placeholder="e.g., Morning Walk & Stretch" class="w-full px-3 py-2.5 text-sm rounded-xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-sage-700 dark:text-sage-400 mb-1">Category (Custom)</label>
+                                <input type="text" id="task-category" placeholder="e.g., Health, Work" class="w-full px-3 py-2 text-sm rounded-xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600" value="General">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-sage-700 dark:text-sage-400 mb-1">Priority</label>
+                                <select id="task-priority" class="w-full px-3 py-2 text-sm rounded-xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600">
+                                    <option value="High">🔴 High</option>
+                                    <option value="Medium" selected>🟡 Medium</option>
+                                    <option value="Low">🟢 Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-sage-700 dark:text-sage-400 mb-1">Scheduled Time</label>
+                                <input type="time" id="task-time" class="w-full px-3 py-2 text-sm rounded-xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600" value="09:00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-sage-700 dark:text-sage-400 mb-1">Frequency</label>
+                                <select id="task-frequency" class="w-full px-3 py-2 text-sm rounded-xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600">
+                                    <option value="Today">Today Only</option>
+                                    <option value="Daily">Daily Habit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button type="submit" id="task-submit-btn" class="flex-1 bg-forest-700 hover:bg-forest-800 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md">Save Task</button>
+                            <button type="button" id="task-cancel-btn" onclick="resetTaskForm()" class="hidden px-4 py-3 bg-sage-100 dark:bg-zinc-700 hover:bg-sage-200 text-sage-700 dark:text-sage-200 font-semibold rounded-xl text-sm transition-all">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Task List grouped by Time Buckets -->
+                <div class="lg:col-span-2 bg-white/90 dark:bg-zinc-800/90 backdrop-blur rounded-3xl p-6 border border-sage-200 dark:border-zinc-700 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h3 class="text-lg font-bold text-forest-900 dark:text-sage-100 flex items-center gap-2"><span>🌱</span> Garden Task Schedule</h3>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <input type="text" id="task-search" oninput="renderTasks()" placeholder="Search tasks..." class="px-3 py-1.5 text-xs rounded-xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600 w-full sm:w-48">
+                            <select id="task-filter-status" onchange="renderTasks()" class="px-3 py-1.5 text-xs rounded-xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600 font-semibold">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="tasks-container" class="space-y-6 max-h-[500px] overflow-y-auto pr-1">
+                        <!-- Dynamically populated time buckets -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: TIMER ==================== -->
+        <section id="tab-timer" class="hidden space-y-6">
+            <div class="bg-white/90 dark:bg-zinc-800/90 backdrop-blur rounded-3xl p-8 border border-sage-200 dark:border-zinc-700 shadow-sm max-w-2xl mx-auto text-center space-y-6">
+                <div>
+                    <span class="px-3 py-1 bg-forest-100 dark:bg-forest-900 text-forest-800 dark:text-forest-200 text-xs font-semibold rounded-full">⏱️ Botanical Focus Conservatory</span>
+                    <h2 class="text-3xl font-extrabold text-forest-900 dark:text-sage-100 mt-2" id="timer-mode-label">Deep Work Session</h2>
+                    <p class="text-sm text-sage-700 dark:text-sage-400">Stay grounded and focused on your current task.</p>
+                </div>
+
+                <div class="flex justify-center items-center gap-4 bg-sage-50 dark:bg-zinc-900 p-4 rounded-2xl border border-sage-200 dark:border-zinc-700 flex-wrap">
+                    <div>
+                        <label class="block text-xs font-semibold text-sage-700 dark:text-sage-400 mb-1">Focus Mins</label>
+                        <input type="number" id="custom-focus-min" min="1" max="180" value="25" onchange="updateTimerCustom()" class="w-20 px-2 py-1.5 text-center text-sm rounded-xl border border-sage-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-earth-900 dark:text-white font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-sage-700 dark:text-sage-400 mb-1">Break Mins</label>
+                        <input type="number" id="custom-break-min" min="1" max="60" value="5" onchange="updateTimerCustom()" class="w-20 px-2 py-1.5 text-center text-sm rounded border border-sage-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-earth-900 dark:text-white font-bold">
+                    </div>
+                    <div class="flex items-end pt-4">
+                        <button onclick="setTimerMode('focus')" class="px-3 py-1.5 text-xs font-semibold bg-forest-700 text-white rounded-xl shadow-sm">Focus</button>
+                        <button onclick="setTimerMode('break')" class="px-3 py-1.5 text-xs font-semibold bg-sage-200 dark:bg-zinc-700 text-sage-800 dark:text-sage-200 rounded-xl ml-1">Break</button>
+                    </div>
+                </div>
+
+                <div class="relative w-56 h-56 mx-auto flex items-center justify-center rounded-full bg-gradient-to-br from-forest-50 to-sage-100 dark:from-zinc-900 dark:to-zinc-800 border-4 border-forest-600 shadow-inner">
+                    <div class="text-5xl font-mono font-black text-forest-900 dark:text-sage-100 tracking-wider" id="timer-display">25:00</div>
+                </div>
+
+                <div class="flex justify-center gap-3">
+                    <button onclick="toggleTimer()" id="timer-toggle-btn" class="px-8 py-3.5 bg-forest-700 hover:bg-forest-800 text-white font-semibold rounded-2xl text-base shadow-lg transition-all">Start Timer</button>
+                    <button onclick="resetTimer()" class="px-6 py-3.5 bg-sage-100 dark:bg-zinc-700 hover:bg-sage-200 text-sage-700 dark:text-sage-200 font-semibold rounded-2xl text-base transition-all">Reset</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: TIMETABLE ==================== -->
+        <section id="tab-timetable" class="hidden space-y-6">
+            <div class="bg-white/90 dark:bg-zinc-800/90 backdrop-blur rounded-3xl p-6 border border-sage-200 dark:border-zinc-700 shadow-sm space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <span class="px-3 py-1 bg-forest-100 dark:bg-forest-900 text-forest-800 dark:text-forest-200 text-xs font-semibold rounded-full">📅 Hourly Time-Blocking Schedule</span>
+                        <h2 class="text-2xl font-bold text-forest-900 dark:text-sage-100 mt-1">Daily Timetable Planner</h2>
+                    </div>
+                    <div class="flex items-center gap-3 bg-sage-50 dark:bg-zinc-900 px-4 py-2.5 rounded-2xl border border-sage-200 dark:border-zinc-700 text-xs shadow-sm">
+                        <div>
+                            <label class="font-bold text-sage-700 dark:text-sage-400 mr-1">Start Hour:</label>
+                            <select id="day-start-hour" onchange="renderTimetable()" class="px-2 py-1 rounded-xl border border-sage-200 dark:border-zinc-700 font-bold bg-white dark:bg-zinc-800 text-earth-900 dark:text-white">
+                                <option value="5">05:00 AM</option>
+                                <option value="6">06:00 AM</option>
+                                <option value="7">07:00 AM</option>
+                                <option value="8" selected>08:00 AM</option>
+                                <option value="9">09:00 AM</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-bold text-sage-700 dark:text-sage-400 mr-1">End Hour:</label>
+                            <select id="day-end-hour" onchange="renderTimetable()" class="px-2 py-1 rounded-xl border border-sage-200 dark:border-zinc-700 font-bold bg-white dark:bg-zinc-800 text-earth-900 dark:text-white">
+                                <option value="20">08:00 PM</option>
+                                <option value="21">09:00 PM</option>
+                                <option value="22">10:00 PM</option>
+                                <option value="23" selected>11:00 PM</option>
+                                <option value="24">12:00 AM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="timetable-grid" class="space-y-3 max-h-[550px] overflow-y-auto pr-2">
+                    <!-- Dynamically generated hourly slots -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: HABITS ==================== -->
+        <section id="tab-habits" class="hidden space-y-6">
+            <div class="bg-white/90 dark:bg-zinc-800/90 backdrop-blur rounded-3xl p-6 border border-sage-200 dark:border-zinc-700 shadow-sm space-y-6 max-w-3xl mx-auto">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="px-3 py-1 bg-forest-100 dark:bg-forest-900 text-forest-800 dark:text-forest-200 text-xs font-semibold rounded-full">🌿 Botanical Habit Tracker</span>
+                        <h2 class="text-2xl font-bold text-forest-900 dark:text-sage-100 mt-1">Daily Growth Rituals</h2>
+                    </div>
+                </div>
+
+                <form id="habit-form" onsubmit="handleHabitSubmit(event)" class="flex gap-2">
+                    <input type="text" id="habit-name" required placeholder="Add a daily habit (e.g., Water Plants, Meditate 10m)" class="flex-1 px-4 py-3 text-sm rounded-2xl border border-sage-200 dark:border-zinc-700 bg-sage-50/50 dark:bg-zinc-900 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600">
+                    <button type="submit" class="px-6 py-3 bg-forest-700 hover:bg-forest-800 text-white font-semibold rounded-2xl text-sm shadow-md transition-all">Add Habit</button>
+                </form>
+
+                <div id="habits-container" class="space-y-3">
+                    <!-- Dynamically populated habits -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: CALENDAR ==================== -->
+        <section id="tab-calendar" class="hidden space-y-6">
+            <div class="bg-white/90 dark:bg-zinc-800/90 backdrop-blur rounded-3xl p-6 border border-sage-200 dark:border-zinc-700 shadow-sm space-y-6 max-w-3xl mx-auto text-center">
+                <div>
+                    <span class="px-3 py-1 bg-forest-100 dark:bg-forest-900 text-forest-800 dark:text-forest-200 text-xs font-semibold rounded-full">📅 Interactive Calendar</span>
+                    <h2 class="text-2xl font-bold text-forest-900 dark:text-sage-100 mt-1" id="calendar-month-year">November 2026</h2>
+                </div>
+
+                <div class="flex justify-between items-center px-2">
+                    <button onclick="changeMonth(-1)" class="px-4 py-2 bg-sage-100 dark:bg-zinc-700 hover:bg-sage-200 rounded-xl text-xs font-bold transition-all">◀ Previous</button>
+                    <button onclick="goToCurrentMonth()" class="px-4 py-2 bg-forest-50 dark:bg-zinc-900 text-forest-800 dark:text-sage-200 hover:bg-forest-100 rounded-xl text-xs font-bold transition-all">Today</button>
+                    <button onclick="changeMonth(1)" class="px-4 py-2 bg-sage-100 dark:bg-zinc-700 hover:bg-sage-200 rounded-xl text-xs font-bold transition-all">Next ▶</button>
+                </div>
+
+                <div class="grid grid-cols-7 gap-2 text-xs font-bold text-sage-700 dark:text-sage-400">
+                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-2">
+                    <!-- Dynamically generated days -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white/80 dark:bg-earth-900/80 border-t border-sage-200 dark:border-zinc-800 mt-12 py-6 text-center text-xs text-sage-700 dark:text-sage-400 shadow-sm transition-colors duration-300">
+        <p>🌿 Verdant Botanical Productivity Planner &copy; 2026. Cultivate focus, grow your daily routines.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        let userName = localStorage.getItem('verdant_username') || 'Gardener';
+        let isDarkMode = localStorage.getItem('verdant_theme') === 'dark';
+
+        let tasks = JSON.parse(localStorage.getItem('verdant_tasks')) || [
+            { id: 1, title: 'Morning Garden Walk & Stretch', category: 'Health', priority: 'High', time: '07:30', frequency: 'Daily', completed: false },
+            { id: 2, title: 'Deep Focus Coding Session', category: 'Work', priority: 'High', time: '10:00', frequency: 'Today', completed: false },
+            { id: 3, title: 'Water Indoor Plants & Herbs', category: 'Home', priority: 'Medium', time: '16:00', frequency: 'Daily', completed: false }
+        ];
+
+        let habits = JSON.parse(localStorage.getItem('verdant_habits')) || [
+            { id: 1, name: 'Drink 2L Fresh Water', streak: 5, completedToday: true },
+            { id: 2, name: 'Read 20 Pages of a Book', streak: 3, completedToday: false }
+        ];
+
+        let timetableSlots = JSON.parse(localStorage.getItem('verdant_timetable')) || {};
+
+        // Timer State
+        let timerDuration = 25 * 60;
+        let timerTimeLeft = 25 * 60;
+        let timerInterval = null;
+        let isTimerRunning = false;
+        let currentTimerMode = 'focus';
+
+        // Web Audio API Sound Generator State
+        let audioCtx = null;
+        let soundNode = null;
+        let soundGain = null;
+        let currentSound = 'none';
+
+        // Calendar State
+        let todayDate = new Date();
+        let currentMonth = todayDate.getMonth();
+        let currentYear = todayDate.getFullYear();
+
+        // Initialization
+        window.onload = function() {
+            if (isDarkMode) {
+                document.getElementById('html-root').classList.add('dark');
+                document.getElementById('theme-icon').innerText = '☀️';
+            }
+            document.getElementById('display-username').innerText = userName;
+            renderTasks();
+            renderHabits();
+            renderTimetable();
+            renderCalendar();
+            updatePlantProgress();
+        };
+
+        // Theme Toggle
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const root = document.getElementById('html-root');
+            if (isDarkMode) {
+                root.classList.add('dark');
+                document.getElementById('theme-icon').innerText = '☀️';
+                localStorage.setItem('verdant_theme', 'dark');
+            } else {
+                root.classList.remove('dark');
+                document.getElementById('theme-icon').innerText = '🌙';
+                localStorage.setItem('verdant_theme', 'light');
+            }
+        }
+
+        // Edit User Name
+        function editUserName() {
+            const newName = prompt('Enter your gardener name:', userName);
+            if (newName && newName.trim() !== '') {
+                userName = newName.trim();
+                localStorage.setItem('verdant_username', userName);
+                document.getElementById('display-username').innerText = userName;
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            ['tasks', 'timer', 'timetable', 'habits', 'calendar'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${t}`).className = "px-4 py-2 text-sm font-semibold rounded-xl transition-all text-sage-700 dark:text-sage-300 hover:text-forest-900 hover:bg-white/80 dark:hover:bg-zinc-700";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tabId}`).className = "px-4 py-2 text-sm font-semibold rounded-xl transition-all bg-forest-700 text-white shadow-sm";
+        }
+
+        // ==================== WEB AUDIO API NATURE SOUND GENERATOR ====================
+        function setSound(type) {
+            currentSound = type;
+            ['none', 'rain', 'thunder', 'birds', 'wind', 'forest'].forEach(s => {
+                const btn = document.getElementById(`sound-${s}`);
+                if (s === type) {
+                    btn.className = 'px-3 py-1.5 font-semibold rounded-lg bg-forest-700 text-white transition-all shadow-sm';
+                } else {
+                    btn.className = 'px-3 py-1.5 font-semibold rounded-lg bg-sage-50 dark:bg-zinc-700 text-sage-800 dark:text-sage-200 border border-sage-200 dark:border-zinc-600 hover:bg-sage-100 transition-all';
+                }
+            });
+
+            stopAudio();
+
+            if (type !== 'none') {
+                playWebAudioSound(type);
+            }
+        }
+
+        function stopAudio() {
+            if (soundNode) {
+                try { soundNode.stop(); } catch(e) {}
+                soundNode.disconnect();
+                soundNode = null;
+            }
+            if (audioCtx && audioCtx.state !== 'closed') {
+                audioCtx.close();
+                audioCtx = null;
+            }
+        }
+
+        function playWebAudioSound(type) {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const bufferSize = audioCtx.sampleRate * 3;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+
+                const whiteNoise = audioCtx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const filter = audioCtx.createBiquadFilter();
+                soundGain = audioCtx.createGain();
+                const volumeVal = parseFloat(document.getElementById('sound-volume').value) || 0.4;
+                soundGain.gain.setValueAtTime(volumeVal, audioCtx.currentTime);
+
+                if (type === 'rain') {
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(800, audioCtx.currentTime);
+                } else if (type === 'thunder') {
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(150, audioCtx.currentTime);
+                } else if (type === 'wind') {
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    filter.Q.setValueAtTime(3, audioCtx.currentTime);
+                } else if (type === 'forest') {
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1200, audioCtx.currentTime);
+                } else if (type === 'birds') {
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(3500, audioCtx.currentTime);
+                    filter.Q.setValueAtTime(8, audioCtx.currentTime);
+                }
+
+                whiteNoise.connect(filter);
+                filter.connect(soundGain);
+                soundGain.connect(audioCtx.destination);
+                whiteNoise.start();
+                soundNode = whiteNoise;
+            } catch (e) {
+                console.log("Web Audio error:", e);
+            }
+        }
+
+        function updateVolume(val) {
+            if (soundGain && audioCtx) {
+                soundGain.gain.setValueAtTime(parseFloat(val), audioCtx.currentTime);
+            }
+        }
+
+        // ==================== TASKS & PLANT GROWTH ====================
+        function handleTaskSubmit(event) {
+            event.preventDefault();
+            const editId = document.getElementById('edit-task-id').value;
+            const title = document.getElementById('task-title').value;
+            const category = document.getElementById('task-category').value || 'General';
+            const priority = document.getElementById('task-priority').value;
+            const time = document.getElementById('task-time').value || '09:00';
+            const frequency = document.getElementById('task-frequency').value;
+
+            if (editId) {
+                tasks = tasks.map(t => t.id == editId ? { ...t, title, category, priority, time, frequency } : t);
+            } else {
+                const newTask = {
+                    id: Date.now(),
+                    title,
+                    category,
+                    priority,
+                    time,
+                    frequency,
+                    completed: false
+                };
+                tasks.push(newTask);
+            }
+
+            saveAndRenderTasks();
+            resetTaskForm();
+        }
+
+        function resetTaskForm() {
+            document.getElementById('task-form').reset();
+            document.getElementById('edit-task-id').value = '';
+            document.getElementById('form-mode-icon').innerText = '➕';
+            document.getElementById('form-title-text').innerText = 'Add New Task';
+            document.getElementById('task-submit-btn').innerText = 'Save Task';
+            document.getElementById('task-cancel-btn').classList.add('hidden');
+            document.getElementById('task-time').value = '09:00';
+            document.getElementById('task-category').value = 'General';
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            document.getElementById('edit-task-id').value = task.id;
+            document.getElementById('task-title').value = task.title;
+            document.getElementById('task-category').value = task.category;
+            document.getElementById('task-priority').value = task.priority;
+            document.getElementById('task-time').value = task.time;
+            document.getElementById('task-frequency').value = task.frequency;
+
+            document.getElementById('form-mode-icon').innerText = '✏️';
+            document.getElementById('form-title-text').innerText = 'Edit Task';
+            document.getElementById('task-submit-btn').innerText = 'Update Task';
+            document.getElementById('task-cancel-btn').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleTaskComplete(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveAndRenderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveAndRenderTasks();
+        }
+
+        function saveAndRenderTasks() {
+            localStorage.setItem('verdant_tasks', JSON.stringify(tasks));
+            renderTasks();
+            updatePlantProgress();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            const search = document.getElementById('task-search').value.toLowerCase();
+            const filterStatus = document.getElementById('task-filter-status').value;
+
+            let filtered = tasks.filter(t => {
+                const matchSearch = t.title.toLowerCase().includes(search) || t.category.toLowerCase().includes(search);
+                const matchStatus = filterStatus === 'all' ? true : filterStatus === 'completed' ? t.completed : !t.completed;
+                return matchSearch && matchStatus;
+            });
+
+            filtered.sort((a, b) => a.time.localeCompare(b.time));
+
+            const buckets = {
+                'Early Morning (04:00 - 08:00)': [],
+                'Morning (08:00 - 12:00)': [],
+                'Noon & Afternoon (12:00 - 17:00)': [],
+                'Evening (17:00 - 21:00)': [],
+                'Night & Anytime (21:00+)': []
+            };
+
+            filtered.forEach(t => {
+                const hour = parseInt(t.time.split(':')[0]);
+                if (hour >= 4 && hour < 8) buckets['Early Morning (04:00 - 08:00)'].push(t);
+                else if (hour >= 8 && hour < 12) buckets['Morning (08:00 - 12:00)'].push(t);
+                else if (hour >= 12 && hour < 17) buckets['Noon & Afternoon (12:00 - 17:00)'].push(t);
+                else if (hour >= 17 && hour < 21) buckets['Evening (17:00 - 21:00)'].push(t);
+                else buckets['Night & Anytime (21:00+)'].push(t);
+            });
+
+            let html = '';
+            let hasTasks = false;
+
+            for (const [bucketName, bucketTasks] of Object.entries(buckets)) {
+                if (bucketTasks.length === 0) continue;
+                hasTasks = true;
+                html += `
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-sage-700 dark:text-sage-400 bg-sage-50 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-sage-200 dark:border-zinc-700">${bucketName}</h4>
+                        <div class="space-y-2">
+                `;
+                bucketTasks.forEach(t => {
+                    const priorityColor = t.priority === 'High' ? 'bg-red-50 text-red-700 border-red-200' : t.priority === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    html += `
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl border border-sage-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-forest-600 transition-all shadow-xs ${t.completed ? 'opacity-60 bg-forest-50/50 dark:bg-zinc-900/50' : ''}">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTaskComplete(${t.id})" class="w-4 h-4 rounded text-forest-600 focus:ring-forest-500 cursor-pointer">
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-semibold text-sm text-forest-900 dark:text-sage-100 ${t.completed ? 'line-through text-sage-700 dark:text-sage-500' : ''}">${t.title}</span>
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-sage-100 dark:bg-zinc-800 text-sage-800 dark:text-sage-300">${t.category}</span>
+                                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-lg border ${priorityColor}">${t.priority}</span>
+                                        <span class="text-[10px] font-bold text-sage-700 dark:text-sage-400">🕒 ${t.time}</span>
+                                        <span class="text-[10px] font-bold text-forest-800 dark:text-forest-300 bg-forest-100 dark:bg-forest-900 px-1.5 py-0.5 rounded-lg">${t.frequency}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="editTask(${t.id})" class="p-1.5 text-sage-700 dark:text-sage-300 hover:text-forest-900 hover:bg-sage-50 dark:hover:bg-zinc-800 rounded-xl text-xs" title="Edit">✏️</button>
+                                <button onclick="deleteTask(${t.id})" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-xl text-xs" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
+            if (!hasTasks) {
+                html = `<div class="text-center py-8 text-sage-700 dark:text-sage-400 text-sm">No tasks found. Add a task above to begin growing your garden! 🌱</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function updatePlantProgress() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+            const titleElem = document.getElementById('global-plant-title');
+            const counterElem = document.getElementById('global-plant-counter');
+            const emojiElem = document.getElementById('global-plant-emoji');
+
+            counterElem.innerText = `${completed} / ${total} Tasks Completed (${percent}%)`;
+
+            if (percent === 100 && total > 0) {
+                titleElem.innerText = 'Stage 4: Radiant Full Bloom! 🌸';
+                emojiElem.innerText = '🌸';
+            } else if (percent >= 60) {
+                titleElem.innerText = 'Stage 3: Lush Leafy Stem 🌿';
+                emojiElem.innerText = '🌿';
+            } else if (percent >= 25) {
+                titleElem.innerText = 'Stage 2: Young Tender Sprout 🌱';
+                emojiElem.innerText = '🌱';
+            } else {
+                titleElem.innerText = 'Stage 1: Dormant Seed 🌰';
+                emojiElem.innerText = '🌰';
+            }
+        }
+
+        // ==================== TIMER ====================
+        function updateTimerCustom() {
+            if (isTimerRunning) return;
+            const focusMins = parseInt(document.getElementById('custom-focus-min').value) || 25;
+            const breakMins = parseInt(document.getElementById('custom-break-min').value) || 5;
+            timerDuration = (currentTimerMode === 'focus' ? focusMins : breakMins) * 60;
+            timerTimeLeft = timerDuration;
+            renderTimerDisplay();
+        }
+
+        function setTimerMode(mode) {
+            if (isTimerRunning) return;
+            currentTimerMode = mode;
+            const focusMins = parseInt(document.getElementById('custom-focus-min').value) || 25;
+            const breakMins = parseInt(document.getElementById('custom-break-min').value) || 5;
+            timerDuration = (mode === 'focus' ? focusMins : breakMins) * 60;
+            timerTimeLeft = timerDuration;
+
+            document.getElementById('timer-mode-label').innerText = mode === 'focus' ? 'Deep Work Session' : 'Relaxing Botanical Break';
+            renderTimerDisplay();
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                document.getElementById('timer-toggle-btn').innerText = 'Resume Timer';
+                document.getElementById('timer-toggle-btn').className = 'px-8 py-3.5 bg-forest-700 hover:bg-forest-800 text-white font-semibold rounded-2xl text-base shadow-lg transition-all';
+            } else {
+                isTimerRunning = true;
+                document.getElementById('timer-toggle-btn').innerText = 'Pause Timer';
+                document.getElementById('timer-toggle-btn').className = 'px-8 py-3.5 bg-terracotta-500 hover:bg-terracotta-600 text-white font-semibold rounded-2xl text-base shadow-lg transition-all';
+                timerInterval = setInterval(() => {
+                    if (timerTimeLeft > 0) {
+                        timerTimeLeft--;
+                        renderTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        alert(currentTimerMode === 'focus' ? '🌱 Focus session completed! Take a relaxing break.' : '🌿 Break finished! Time to return to your tasks.');
+                        setTimerMode(currentTimerMode === 'focus' ? 'break' : 'focus');
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            const focusMins = parseInt(document.getElementById('custom-focus-min').value) || 25;
+            const breakMins = parseInt(document.getElementById('custom-break-min').value) || 5;
+            timerDuration = (currentTimerMode === 'focus' ? focusMins : breakMins) * 60;
+            timerTimeLeft = timerDuration;
+            document.getElementById('timer-toggle-btn').innerText = 'Start Timer';
+            document.getElementById('timer-toggle-btn').className = 'px-8 py-3.5 bg-forest-700 hover:bg-forest-800 text-white font-semibold rounded-2xl text-base shadow-lg transition-all';
+            renderTimerDisplay();
+        }
+
+        function renderTimerDisplay() {
+            const mins = Math.floor(timerTimeLeft / 60);
+            const secs = timerTimeLeft % 60;
+            document.getElementById('timer-display').innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // ==================== TIMETABLE ====================
+        function renderTimetable() {
+            const container = document.getElementById('timetable-grid');
+            const startHour = parseInt(document.getElementById('day-start-hour').value) || 8;
+            const endHour = parseInt(document.getElementById('day-end-hour').value) || 23;
+
+            let html = '';
+            for (let h = startHour; h <= endHour; h++) {
+                const timeKey = `${String(h).padStart(2, '0')}:00`;
+                const displayTime = h === 12 ? '12:00 PM' : h > 12 ? `${h - 12}:00 PM` : `${h}:00 AM`;
+                const currentContent = timetableSlots[timeKey] || '';
+
+                html += `
+                    <div class="flex items-center gap-3 p-3.5 rounded-2xl border border-sage-200 dark:border-zinc-700 bg-forest-50/30 dark:bg-zinc-900/40">
+                        <div class="w-24 text-xs font-bold text-sage-700 dark:text-sage-400">${displayTime}</div>
+                        <input type="text" value="${currentContent}" onchange="updateTimetableSlot('${timeKey}', this.value)" placeholder="Plan activity for ${displayTime}..." class="flex-1 px-3 py-2 text-sm rounded-xl border border-sage-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-earth-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-forest-600">
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function updateTimetableSlot(timeKey, value) {
+            timetableSlots[timeKey] = value;
+            localStorage.setItem('verdant_timetable', JSON.stringify(timetableSlots));
+        }
+
+        // ==================== HABITS ====================
+        function handleHabitSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('habit-name').value;
+            const newHabit = {
+                id: Date.now(),
+                name,
+                streak: 0,
+                completedToday: false
+            };
+            habits.push(newHabit);
+            document.getElementById('habit-form').reset();
+            saveAndRenderHabits();
+        }
+
+        function toggleHabit(id) {
+            habits = habits.map(h => {
+                if (h.id === id) {
+                    const completedToday = !h.completedToday;
+                    const streak = completedToday ? h.streak + 1 : Math.max(0, h.streak - 1);
+                    return { ...h, completedToday, streak };
+                }
+                return h;
+            });
+            saveAndRenderHabits();
+        }
+
+        function deleteHabit(id) {
+            habits = habits.filter(h => h.id !== id);
+            saveAndRenderHabits();
+        }
+
+        function saveAndRenderHabits() {
+            localStorage.setItem('verdant_habits', JSON.stringify(habits));
+            renderHabits();
+        }
+
+        function renderHabits() {
+            const container = document.getElementById('habits-container');
+            let html = '';
+            habits.forEach(h => {
+                html += `
+                    <div class="flex items-center justify-between p-4 rounded-2xl border border-sage-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-xs">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${h.completedToday ? 'checked' : ''} onchange="toggleHabit(${h.id})" class="w-5 h-5 rounded text-forest-600 focus:ring-forest-500 cursor-pointer">
+                            <div>
+                                <h4 class="font-semibold text-sm text-forest-900 dark:text-sage-100 ${h.completedToday ? 'line-through text-sage-700 dark:text-sage-500' : ''}">${h.name}</h4>
+                                <span class="text-xs font-bold text-terracotta-600">🔥 Streak: ${h.streak} Days</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteHabit(${h.id})" class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-xl text-xs" title="Delete Habit">🗑️</button>
+                    </div>
+                `;
+            });
+            if (habits.length === 0) {
+                html = `<div class="text-center py-6 text-sage-700 dark:text-sage-400 text-sm">No daily habits added yet. Start building consistency above! 🌿</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // ==================== CALENDAR ====================
+        function renderCalendar() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('calendar-month-year').innerText = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+            const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            const grid = document.getElementById('calendar-grid');
+            let html = '';
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                html += `<div></div>`;
+            }
+
+            const currDateObj = new Date();
+            for (let d = 1; d <= totalDays; d++) {
+                const isToday = d === currDateObj.getDate() && currentMonth === currDateObj.getMonth() && currentYear === currDateObj.getFullYear();
+                html += `
+                    <div class="p-3 rounded-2xl text-center border text-xs font-bold ${isToday ? 'bg-forest-700 text-white border-forest-700 shadow-md' : 'bg-sage-50/50 dark:bg-zinc-900 border-sage-200 dark:border-zinc-700 text-earth-900 dark:text-sage-200 hover:bg-sage-100 dark:hover:bg-zinc-800'}">
+                        ${d}
+                    </div>
+                `;
+            }
+            grid.innerHTML = html;
+        }
+
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        function goToCurrentMonth() {
+            const d = new Date();
+            currentMonth = d.getMonth();
+            currentYear = d.getFullYear();
+            renderCalendar();
+        }
+    </script>
+</body>
+</html>
